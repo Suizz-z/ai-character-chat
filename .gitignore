@@ -136,6 +136,40 @@ Thumbs.db
 # Project specific
 *.db
 *.sqlite
+*.sqlite3
 data/
 logs/
 *.log
+
+# Knowledge base / Vector database
+backend/knowledge_base/chroma_db/
+
+# Environment files (keep .env.example)
+.env
+.env.local
+.env.*.local
+
+# AI / ML models and caches
+*.pkl
+*.h5
+*.pt
+*.pth
+*.onnx
+*.safetensors
+models/
+checkpoints/
+.cache/
+
+# LLM / RAG specific
+embeddings/
+vector_store/
+chroma/
+faiss_index/
+pinecone_index/
+
+# Output files
+output/
+outputs/
+results/
+temp/
+tmp/
