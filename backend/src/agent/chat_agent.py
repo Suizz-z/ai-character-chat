@@ -1,14 +1,21 @@
-from langchain.agents import create_agent
+from langchain.agents import AgentState, create_agent
 from model import chat_Model
 from langgraph.checkpoint.memory import InMemorySaver
 from src.agent.tools.web_search import web_search
 
+class ChatAgentConfig(AgentState):
+    personality_name: str
+    user_id: str
 
-chat_agent = create_agent(
-    model=chat_Model,
-    tools=[web_search],
-)
-
-chat_agent.system_prompt = """
-你是一个专业的占卜师，你的任务是根据用户的问题，提供专业的占卜结果。
-"""
+def create_chat_agent(prompt_template,personality_name,user_id):
+    config = ChatAgentConfig(
+        personality_name=personality_name,
+        user_id=user_id,
+    )
+    return create_agent(
+        model=chat_Model,
+        tools=[web_search],
+        state_schema=ChatAgentConfig,
+        checkpoint=InMemorySaver(),
+        system_prompt=prompt_template,
+    )

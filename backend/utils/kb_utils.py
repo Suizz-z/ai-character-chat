@@ -1,15 +1,15 @@
 import os
-from langchain_community.vectorstores import Chroma
+import sys
+from langchain_chroma import Chroma
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from src.model import embedding_Model
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# 全局变量：缓存向量库实例，避免重复加载
 _chroma_db = None
 
 def get_chroma_db():
-    """获取Chroma向量库实例（单例模式）"""
     global _chroma_db
     if _chroma_db is None:
         embeddings = embedding_Model
@@ -29,42 +29,35 @@ def retrieve_personality(personality_name: str, top_k: int = 1):
     """
     db = get_chroma_db()
     
-    # 1. 按元数据精准过滤（优先匹配名称）
     retriever = db.as_retriever(
         search_kwargs={
             "k": top_k,
-            "filter": {"personality_name": {"$regex": personality_name}}  # 模糊匹配名称
+            "filter": {"personality_name": {"$eq": personality_name}}
         }
     )
     
-    # 2. 执行检索
     docs = retriever.invoke(personality_name)
     if not docs:
         return None
     
-    # 3. 解析检索结果为原JSON格式
     doc_content = docs[0].page_content
     personality = {}
     
-    # 解析名称
     name_line = [line for line in doc_content.split('\n') if "人格名称：" in line][0]
     personality["name"] = name_line.replace("人格名称：", "").strip()
     
-    # 解析背景
     background_line = [line for line in doc_content.split('\n') if "背景：" in line][0]
     personality["background"] = background_line.replace("背景：", "").strip()
     
-    # 解析性格特征
     traits_line = [line for line in doc_content.split('\n') if "性格特征：" in line][0]
     personality["personality_traits"] = traits_line.replace("性格特征：", "").strip().split(',')
     
-    # 解析语言风格
     style_line = [line for line in doc_content.split('\n') if "语言风格：" in line][0]
     personality["dialogue_style"] = style_line.replace("语言风格：", "").strip()
     
-    # 解析提示词模板
     template_line = [line for line in doc_content.split('\n') if "提示词模板：" in line][0]
-    personality["prompt_template"] = template_line.replace("提示词模板：", "").strip()
+    template_start_index = doc_content.index("提示词模板：") + len("提示词模板：")
+    personality["prompt_template"] = doc_content[template_start_index:].strip()
     
     return personality
 
@@ -73,14 +66,13 @@ def get_personality_prompt(personality_name: str, user_input: str, history: str 
     从知识库获取人格模板，并格式化Prompt
     :param personality_name: 人格名称
     :param user_input: 用户输入
-    :param history: 历史对话
+    :param history: 历史对话（可选，默认为空）
     :return: 格式化后的Prompt文本，无结果返回None
     """
     personality = retrieve_personality(personality_name)
     if not personality:
         return None
     
-    # 格式化Prompt模板（与之前逻辑一致）
     prompt_template = personality["prompt_template"]
     formatted_prompt = prompt_template.format(
         background=personality["background"],
@@ -90,3 +82,6 @@ def get_personality_prompt(personality_name: str, user_input: str, history: str 
         history=history
     )
     return formatted_prompt
+
+if __name__ == "__main__":
+    print(get_personality_prompt("李白（字太白，号青莲居士）","你好"))
