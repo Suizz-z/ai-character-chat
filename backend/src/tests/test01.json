@@ -1,0 +1,37 @@
+{
+    "status_code": 200,
+    "request_id": "bb9c6218-478a-4beb-a28c-4cb64ebe973e",
+    "code": "",
+    "message": "",
+    "output": {
+        "text": null,
+        "finish_reason": null,
+        "choices": [
+            {
+                "finish_reason": "stop",
+                "message": {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "image": "https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com/7d/1d/20260101/d23adf3d/bb9c6218-478a-4beb-a28c-4cb64ebe973e3525275509.png?Expires=1767826371&OSSAccessKeyId=LTAI5tKPD3TMqf2Lna1fASuh&Signature=4zW3cma%2BRFD4LRYjA6B4G9UATCY%3D"
+                        }
+                    ]
+                }
+            }
+        ],
+        "audio": null,
+        "task_metric": {
+            "FAILED": 0,
+            "SUCCEEDED": 1,
+            "TOTAL": 1
+        }
+    },
+    "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "characters": 0,
+        "height": 1328,
+        "image_count": 1,
+        "width": 1328
+    }
+}

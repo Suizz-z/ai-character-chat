@@ -1,7 +1,6 @@
-from langchain_community.chat_models import ChatTongyi
-from langchain.agents import create_agent
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+from langchain_community.chat_models import ChatTongyi
 from langchain_community.embeddings import DashScopeEmbeddings
 
 load_dotenv()
