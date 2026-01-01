@@ -109,12 +109,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-如果需要手动安装，主要依赖包括：
-
-```bash
-pip install streamlit flask flask-cors langchain chromadb dashscope python-dotenv requests
-```
-
 ### 4. 配置环境变量
 
 创建 `.env` 文件，配置以下环境变量：
