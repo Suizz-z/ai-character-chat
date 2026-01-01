@@ -368,10 +368,6 @@ streamlit run app.py
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
 
-## 许可证
-
-本项目采用 MIT 许可证。详见 LICENSE 文件。
-
 ## 致谢
 
 - DashScope (通义千问) 提供的大语言模型和图像生成服务
@@ -381,9 +377,7 @@ streamlit run app.py
 
 ## 联系方式
 
-- 项目主页：[GitHub Repository]
-- 问题反馈：[Issues]
-- 邮箱：your.email@example.com
+- 邮箱：1344278076@qq.com
 
 ---
 
