@@ -52,8 +52,9 @@ def retrieve_personality(personality_name: str, top_k: int = 1):
     traits_line = [line for line in doc_content.split('\n') if "性格特征：" in line][0]
     personality["personality_traits"] = traits_line.replace("性格特征：", "").strip().split(',')
     
-    style_line = [line for line in doc_content.split('\n') if "语言风格：" in line][0]
-    personality["dialogue_style"] = style_line.replace("语言风格：", "").strip()
+    style_start_index = doc_content.index("语言风格：") + len("语言风格：")
+    template_start_index = doc_content.index("提示词模板：")
+    personality["dialogue_style"] = doc_content[style_start_index:template_start_index].strip()
     
     template_line = [line for line in doc_content.split('\n') if "提示词模板：" in line][0]
     template_start_index = doc_content.index("提示词模板：") + len("提示词模板：")
@@ -82,4 +83,5 @@ def get_personality_prompt(personality_name: str):
     return formatted_prompt
 
 if __name__ == "__main__":
-    print(get_personality_prompt("李白（字太白，号青莲居士）","你好"))
+    # print(get_personality_prompt("李白（字太白，号青莲居士）","你好"))
+    print(retrieve_personality("李白（字太白，号青莲居士）"))

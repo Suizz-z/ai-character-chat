@@ -68,6 +68,7 @@ def image():
 def get_personality_detail():
     personality_name = request.args.get("name")
     personality = retrieve_personality(personality_name)
+    print(personality)
     if not personality:
         return jsonify({"code": 404, "msg": "人格不存在"})
     return jsonify({"code": 200, "data": personality})
