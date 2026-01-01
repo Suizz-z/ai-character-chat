@@ -61,7 +61,7 @@ def retrieve_personality(personality_name: str, top_k: int = 1):
     
     return personality
 
-def get_personality_prompt(personality_name: str, user_input: str, history: str = ""):
+def get_personality_prompt(personality_name: str):
     """
     从知识库获取人格模板，并格式化Prompt
     :param personality_name: 人格名称
@@ -78,8 +78,6 @@ def get_personality_prompt(personality_name: str, user_input: str, history: str 
         background=personality["background"],
         personality_traits=','.join(personality["personality_traits"]),
         dialogue_style=personality["dialogue_style"],
-        user_input=user_input,
-        history=history
     )
     return formatted_prompt
 

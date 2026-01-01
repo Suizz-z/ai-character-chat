@@ -43,13 +43,25 @@ def chat():
         personality_name=personality_name,
         user_id=user_id,
     )
-    return jsonify({"code": 200, "data": res})
+    
+    messages = res.get("messages", [])
+    if messages:
+        last_message = messages[-1]
+        if hasattr(last_message, 'content'):
+            reply = last_message.content
+        else:
+            reply = str(last_message)
+    else:
+        reply = "抱歉，没有收到回复"
+    
+    return jsonify({"code": 200, "data": reply})
 
 @app.route("/api/image", methods=["POST"])
 def image():
     data = request.json
-    query = data["query"]
-    res = create_image(query)
+    query = data.get("query", "")
+    personality_name = data.get("personality_name", "")
+    res = create_image(personality_name, query)
     return jsonify({"code": 200, "data": res})
 
 @app.route("/api/personality-detail", methods=["GET"])
