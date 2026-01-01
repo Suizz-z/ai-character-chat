@@ -33,6 +33,41 @@ st.markdown("""
         background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
     }
     
+    /* 侧边栏详情样式 */
+    .sidebar-detail-container {
+        background: rgba(255,255,255,0.1);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .sidebar-detail-content {
+        color: white;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    
+    .sidebar-detail-container::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .sidebar-detail-container::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.1);
+        border-radius: 2px;
+    }
+    
+    .sidebar-detail-container::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.3);
+        border-radius: 2px;
+    }
+    
+    .sidebar-detail-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(255,255,255,0.5);
+    }
+    
     [data-testid="stSidebar"] * {
         color: #ffffff !important;
     }
@@ -230,6 +265,7 @@ user_id = str(uuid.uuid4())
 
 BACKEND_URL = "http://localhost:5000"
 
+# 初始化session state
 if "history" not in st.session_state:
     st.session_state.history = []
 if "selected_personality" not in st.session_state:
@@ -248,6 +284,7 @@ if "conversation_round" not in st.session_state:
     st.session_state.conversation_round = 0
 if "next_image_round" not in st.session_state:
     st.session_state.next_image_round = random.randint(3, 10)
+
 
 st.markdown("""
 <div style='text-align: center; padding: 2rem 0;'>
@@ -297,6 +334,7 @@ def get_personality_detail(personality_name):
             f"{BACKEND_URL}/api/personality-detail",
             params={"name": personality_name}
         )
+        
         return res.json()
     except Exception as e:
         st.error(f"获取人格详情失败：{e}")
@@ -308,35 +346,103 @@ def generate_image(personality_name, query):
             f"{BACKEND_URL}/api/image",
             json={"personality_name": personality_name, "query": query}
         )
+        
         return res.json()
     except Exception as e:
         st.error(f"生成图片失败：{e}")
         return {"code": 500, "msg": str(e)}
 
 def format_personality_detail(personality):
-    markdown = f"""
-# 📖 {personality.get('name', '未知人格')}
-
-## 🎭 背景
-{personality.get('background', '暂无背景信息')}
-
-## ✨ 性格特征
-"""
+    """修复HTML格式，确保正确渲染"""
+    # 基础信息提取
+    name = personality.get('name', '未知人格')
+    background = personality.get('background', '暂无背景信息')
     traits = personality.get('personality_traits', [])
-    if traits:
-        for trait in traits:
-            markdown += f"- {trait}\n"
-    else:
-        markdown += "暂无性格特征\n"
-    
     dialogue_style = personality.get('dialogue_style', '')
-    if dialogue_style:
-        markdown += "\n## 💬 对话风格\n"
-        markdown += dialogue_style
-    else:
-        markdown += "\n## 💬 对话风格\n暂无对话风格信息"
     
-    return markdown
+    # 构建完整的HTML结构
+    html_parts = [
+        '<div class="sidebar-detail-content">',
+        f'<h4 style="color: #ffffff; margin: 0 0 1rem 0; font-size: 1rem; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 0.5rem;">📖 {name}</h4>',
+        
+        # 背景部分
+        '<div style="margin-bottom: 1rem;">',
+        '<h5 style="color: #bbdefb; margin: 0 0 0.5rem 0; font-size: 0.9rem;">🎭 背景</h5>',
+        f'<p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.8rem; line-height: 1.3;">{background}</p>',
+        '</div>',
+        
+        # 性格特征部分
+        '<div style="margin-bottom: 1rem;">',
+        '<h5 style="color: #bbdefb; margin: 0 0 0.5rem 0; font-size: 0.9rem;">✨ 性格特征</h5>',
+    ]
+    
+    # 处理性格特征
+    if traits:
+        html_parts.append('<ul style="color: rgba(255,255,255,0.9); margin: 0; padding-left: 1rem; font-size: 0.8rem;">')
+        for trait in traits:
+            html_parts.append(f'<li style="margin-bottom: 0.3rem;">{trait}</li>')
+        html_parts.append('</ul>')
+    else:
+        html_parts.append('<p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 0.8rem;">暂无性格特征</p>')
+    
+    html_parts.append('</div>')
+    
+    # 对话风格部分
+    html_parts.extend([
+        '<div>',
+        '<h5 style="color: #bbdefb; margin: 0 0 0.5rem 0; font-size: 0.9rem;">💬 对话风格</h5>',
+    ])
+    
+    if dialogue_style:
+        # 处理对话风格，使其更美观地显示
+        html_parts.append('<div style="background: rgba(255,255,255,0.05); padding: 0.8rem; border-radius: 0.3rem; border-left: 3px solid #667eea;">')
+        
+        # 解析 Markdown 格式的内容并转换为美观的 HTML
+        lines = dialogue_style.split('\n')
+        current_section = ""
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # 处理标题行（### 开头）
+            if line.startswith('###'):
+                title_text = line.replace('###', '').strip()
+                html_parts.append(f'<h6 style="color: #e1f5fe; margin: 0.8rem 0 0.5rem 0; font-size: 0.9rem; font-weight: bold;">{title_text}</h6>')
+                
+            # 处理子标题行（1. 2. 3. 开头）
+            elif line.startswith(('1.', '2.', '3.', '4.', '5.')):
+                # 清理内容中的特殊字符并加粗关键词
+                content = line
+                if '：' in content:
+                    parts = content.split('：', 1)
+                    if len(parts) == 2:
+                        label, text = parts
+                        text = text.strip()
+                        html_parts.append(f'<div style="margin-bottom: 0.5rem;"><span style="color: #bbdefb; font-weight: bold; font-size: 0.8rem;">{label}</span><span style="color: rgba(255,255,255,0.9); font-size: 0.8rem;">{text}</span></div>')
+                    else:
+                        html_parts.append(f'<div style="margin-bottom: 0.5rem; color: rgba(255,255,255,0.9); font-size: 0.8rem;">{content}</div>')
+                else:
+                    html_parts.append(f'<div style="margin-bottom: 0.5rem; color: rgba(255,255,255,0.9); font-size: 0.8rem;">{content}</div>')
+                    
+            # 处理普通文本
+            else:
+                # 处理引用或特殊格式
+                if line.startswith('"') and line.endswith('"'):
+                    html_parts.append(f'<div style="margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.03); border-radius: 0.3rem; font-style: italic; color: rgba(255,255,255,0.8); font-size: 0.8rem;">{line}</div>')
+                else:
+                    html_parts.append(f'<div style="margin-bottom: 0.5rem; color: rgba(255,255,255,0.9); font-size: 0.8rem;">{line}</div>')
+        
+        html_parts.append('</div>')
+    else:
+        html_parts.append('<p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 0.8rem;">暂无对话风格信息</p>')
+    
+    html_parts.append('</div>')
+    html_parts.append('</div>')
+    
+    # 拼接并返回完整HTML
+    return ''.join(html_parts)
 
 def on_personality_change():
     if st.session_state.last_personality != "" and st.session_state.last_personality != st.session_state.selected_personality:
@@ -345,6 +451,7 @@ def on_personality_change():
         st.session_state.conversation_round = 0
         st.session_state.next_image_round = random.randint(3, 10)
 
+# 获取人格列表
 personalities = get_personality_list()
 if personalities:
     st.sidebar.markdown("""
@@ -364,6 +471,7 @@ if personalities:
 
 st.sidebar.markdown("<br>", unsafe_allow_html=True)
 
+# 创建和详情按钮
 col1, col2 = st.sidebar.columns(2)
 with col1:
     create_btn = st.button("🚀 创建", use_container_width=True, type="primary")
@@ -396,6 +504,31 @@ if detail_btn:
 
 st.sidebar.markdown("<br><hr style='border-color: rgba(255,255,255,0.2);'><br>", unsafe_allow_html=True)
 
+# 显示人格详情
+if st.session_state.show_personality_detail and st.session_state.personality_detail_data:
+    
+    st.sidebar.markdown("""
+    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;'>
+        <h3 style='color: white; margin: 0; font-size: 1.1rem;'>📖 人格详情</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # 使用容器包裹详情内容，确保样式正确
+    st.sidebar.markdown(
+        f'<div class="sidebar-detail-container">{format_personality_detail(st.session_state.personality_detail_data)}</div>',
+        unsafe_allow_html=True
+    )
+    
+    # 操作按钮
+    col1, = st.sidebar.columns(1)
+    with col1:
+        if st.button("关闭详情", use_container_width=True, type="secondary"):
+            st.session_state.show_personality_detail = False
+            st.rerun()
+    
+    st.sidebar.markdown("<br>", unsafe_allow_html=True)
+
+# 提示信息
 st.sidebar.markdown("""
 <div style='background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;'>
     <h4 style='color: white; font-size: 0.9rem; margin: 0;'>💡 提示</h4>
@@ -405,27 +538,9 @@ st.sidebar.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-if "show_personality_detail" in st.session_state and st.session_state.show_personality_detail:
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("""
-    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 1rem; margin: 1rem 0;'>
-        <h2 style='color: white; margin: 0 0 1rem 0; font-size: 1.5rem;'>📖 人格详情</h2>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    with st.expander("📖 查看人格详情", expanded=True):
-        markdown_content = format_personality_detail(st.session_state.personality_detail_data)
-        st.markdown(markdown_content)
-        
-        with st.expander("🔍 调试信息（查看原始数据）"):
-            st.json(st.session_state.personality_detail_data)
-        
-        if st.button("关闭", use_container_width=True, type="secondary"):
-            st.session_state.show_personality_detail = False
-            st.rerun()
-
 st.markdown("<br><hr style='border-color: #e5e7eb;'><br>", unsafe_allow_html=True)
 
+# 主聊天区域
 if not st.session_state.agent_created:
     st.markdown("""
     <div style='background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); padding: 2rem; border-radius: 1rem; text-align: center; border-left: 5px solid #ffc107;'>
@@ -434,15 +549,16 @@ if not st.session_state.agent_created:
     </div>
     """, unsafe_allow_html=True)
 else:
-    st.markdown("""
+    st.markdown(f"""
     <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem 2rem; border-radius: 1rem; margin-bottom: 1.5rem;'>
         <h2 style='color: white; margin: 0; font-size: 1.5rem;'>💬 聊天窗口</h2>
         <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 0.9rem;'>
-            当前对话角色：<strong>{}</strong>
+            当前对话角色：<strong>{st.session_state.selected_personality}</strong>
         </p>
     </div>
-    """.format(st.session_state.selected_personality), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
+    # 显示聊天历史
     for msg in st.session_state.history:
         with st.chat_message(msg["role"]):
             if msg["role"] == "user":
@@ -458,6 +574,7 @@ else:
                 </div>
                 """, unsafe_allow_html=True)
             
+            # 显示图片（如果有）
             if "image" in msg and msg["image"]:
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.markdown(f"""
@@ -468,9 +585,11 @@ else:
                 st.image(msg["image"], caption=f"{st.session_state.selected_personality}的动作", width="auto")
                 st.markdown("<br>", unsafe_allow_html=True)
 
+    # 聊天输入框
     user_input = st.chat_input("💬 输入你想聊的内容...")
 
     if user_input and st.session_state.selected_personality:
+        # 添加用户消息到历史
         st.session_state.history.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(f"""
@@ -479,6 +598,7 @@ else:
             </div>
             """, unsafe_allow_html=True)
         
+        # 获取AI回复
         with st.spinner("🤔 AI正在思考..."):
             try:
                 res = requests.post(
@@ -495,6 +615,7 @@ else:
                     
                     msg_data = {"role": "assistant", "content": reply}
                     
+                    # 检查是否需要生成图片
                     if st.session_state.conversation_round >= st.session_state.next_image_round:
                         with st.spinner("🎨 正在生成人物动作图片..."):
                             image_result = generate_image(st.session_state.selected_personality, reply)
@@ -506,10 +627,13 @@ else:
                                 elif isinstance(image_data, str):
                                     msg_data["image"] = image_data
                                 
+                                # 更新下一次生成图片的轮数
                                 st.session_state.next_image_round = st.session_state.conversation_round + random.randint(3, 10)
                     
+                    # 添加AI回复到历史
                     st.session_state.history.append(msg_data)
                     
+                    # 显示AI回复
                     with st.chat_message("assistant"):
                         st.markdown(f"""
                         <div style='background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 1rem 1.5rem; border-radius: 1rem 1rem 0 1rem; margin: 0.5rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
@@ -517,6 +641,7 @@ else:
                         </div>
                         """, unsafe_allow_html=True)
                         
+                        # 显示图片（如果有）
                         if "image" in msg_data and msg_data["image"]:
                             st.markdown("<br>", unsafe_allow_html=True)
                             st.markdown(f"""
@@ -527,12 +652,14 @@ else:
                             st.image(msg_data["image"], caption=f"{st.session_state.selected_personality}的动作", width="auto")
                             st.markdown("<br>", unsafe_allow_html=True)
                 else:
+                    # 显示错误信息
                     st.markdown(f"""
                     <div style='background: #f8d7da; padding: 1rem 1.5rem; border-radius: 0.5rem; border-left: 4px solid #dc3545; margin: 1rem 0;'>
                         <p style='margin: 0; color: #721c24; font-weight: 500;'>❌ {res.json()['msg']}</p>
                     </div>
                     """, unsafe_allow_html=True)
             except Exception as e:
+                # 显示异常信息
                 st.markdown(f"""
                 <div style='background: #f8d7da; padding: 1rem 1.5rem; border-radius: 0.5rem; border-left: 4px solid #dc3545; margin: 1rem 0;'>
                     <p style='margin: 0; color: #721c24; font-weight: 500;'>❌ 聊天失败：{e}</p>
