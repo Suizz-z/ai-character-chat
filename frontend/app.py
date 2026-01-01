@@ -649,7 +649,7 @@ else:
                                 <p style='color: #6c757d; margin: 0 0 1rem 0; font-size: 0.9rem;'>🎨 {st.session_state.selected_personality} 的动作</p>
                             </div>
                             """, unsafe_allow_html=True)
-                            st.image(msg_data["image"], caption=f"{st.session_state.selected_personality}的动作", width="auto")
+                            st.image(msg_data["image"], caption=f"{st.session_state.selected_personality}的动作",width=600)
                             st.markdown("<br>", unsafe_allow_html=True)
                 else:
                     # 显示错误信息
