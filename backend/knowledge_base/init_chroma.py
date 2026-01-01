@@ -1,18 +1,17 @@
 import json
 import os
+import sys
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import DashScopeEmbeddings
+
 from langchain_core.documents import Document
 from dotenv import load_dotenv
 
-
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from src.model import embedding_Model
 
 load_dotenv()
 
-embeddings = DashScopeEmbeddings(
-    dashscope_api_key=os.getenv("DASHSCOPE_API_KEY"),
-    model="text-embedding-v4",
-)
+embeddings = embedding_Model
 
 def load_personality_json():
     json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "personalities.json")
